@@ -1,4 +1,4 @@
-import { cn } from '@/lib/utils';
+import { cn } from "@/lib/utils";
 
 const ProductPrice = ({
   value,
@@ -7,16 +7,13 @@ const ProductPrice = ({
   value: number;
   className?: string;
 }) => {
-  // Ensure two decimal places
   const stringValue = value.toFixed(2);
-  // Get the int/float
-  const [intValue, floatValue] = stringValue.split('.');
-
+  const [iniValue, floatValue] = stringValue.split(".");
   return (
-    <p className={cn('text-2xl', className)}>
-      <span className='text-xs align-super'>$</span>
-      {intValue}
-      <span className='text-xs align-super'>.{floatValue}</span>
+    <p className={cn("text-2xl", className)}>
+      <span className="text-xs align-super">$</span>
+      {iniValue}
+      <span className="text-xs align-super">.{floatValue}</span>
     </p>
   );
 };

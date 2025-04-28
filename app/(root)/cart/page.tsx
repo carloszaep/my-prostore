@@ -1,8 +1,10 @@
-import CartTable from './cart-table';
-import { getMyCart } from '@/lib/actions/cart.actions';
+import { Metadata } from "next";
+import CartTable from "./cart-table";
+import { getMyCart } from "@/lib/actions/cart.actions";
 
-export const metadata = {
-  title: 'Shopping Cart',
+export const metadata: Metadata = {
+  title: "Shopping Cart",
+  description: "Cart page",
 };
 
 const CartPage = async () => {

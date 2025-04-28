@@ -1,72 +1,66 @@
-'use server';
+"use server";
 
 import {
+  editUserSchema,
+  paymentMethodSchema,
   shippingAddressSchema,
   signInFormSchema,
   signUpFormSchema,
-  paymentMethodSchema,
-  updateUserSchema,
-} from '../validators';
-import { auth, signIn, signOut } from '@/auth';
-import { isRedirectError } from 'next/dist/client/components/redirect-error';
-import { hash } from '../encrypt';
-import { prisma } from '@/db/prisma';
-import { formatError } from '../utils';
-import { ShippingAddress } from '@/types';
-import { z } from 'zod';
-import { PAGE_SIZE } from '../constants';
-import { revalidatePath } from 'next/cache';
-import { Prisma } from '@prisma/client';
-import { getMyCart } from './cart.actions';
+} from "../validators";
+import { auth, signIn, signOut } from "@/auth";
+import { isRedirectError } from "next/dist/client/components/redirect-error";
+import { hashSync } from "bcrypt-ts-edge";
+import { prisma } from "@/db/prisma";
+import { formatError } from "../utils";
+import { ShippingAddress } from "@/types";
+import { z } from "zod";
+import { PAGE_SIZE } from "../constants";
+import { revalidatePath } from "next/cache";
+import { Prisma } from "@prisma/client";
 
-// Sign in the user with credentials
-export async function signInWithCredentials(
+// sign in user with credentials
+
+export async function signinWithCredentials(
   prevState: unknown,
   formData: FormData
 ) {
   try {
     const user = signInFormSchema.parse({
-      email: formData.get('email'),
-      password: formData.get('password'),
+      email: formData.get("email"),
+      password: formData.get("password"),
     });
 
-    await signIn('credentials', user);
+    await signIn("credentials", user);
 
-    return { success: true, message: 'Signed in successfully' };
+    return { success: true, message: "Sign in successful" };
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
-    return { success: false, message: 'Invalid email or password' };
+
+    return { success: false, message: "invalid credentials" };
   }
 }
 
-// Sign user out
+// sign out user
 export async function signOutUser() {
-  // get current users cart and delete it so it does not persist to next user
-  const currentCart = await getMyCart();
-
-  if (currentCart?.id) {
-    await prisma.cart.delete({ where: { id: currentCart.id } });
-  } else {
-    console.warn('No cart found for deletion.');
-  }
   await signOut();
 }
 
-// Sign up user
+// signup user
+
 export async function signUpUser(prevState: unknown, formData: FormData) {
   try {
     const user = signUpFormSchema.parse({
-      name: formData.get('name'),
-      email: formData.get('email'),
-      password: formData.get('password'),
-      confirmPassword: formData.get('confirmPassword'),
+      name: formData.get("name"),
+      email: formData.get("email"),
+      password: formData.get("password"),
+      confirmPassword: formData.get("confirmPassword"),
     });
 
     const plainPassword = user.password;
 
-    user.password = await hash(user.password);
+    user.password = hashSync(user.password, 10);
 
     await prisma.user.create({
       data: {
@@ -76,85 +70,85 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       },
     });
 
-    await signIn('credentials', {
-      email: user.email,
-      password: plainPassword,
-    });
+    await signIn("credentials", { email: user.email, password: plainPassword });
 
-    return { success: true, message: 'User registered successfully' };
+    return { success: true, message: "Sign up successful" };
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
+
     return { success: false, message: formatError(error) };
   }
 }
 
-// Get user by the ID
+// get user by id
 export async function getUserById(userId: string) {
-  const user = await prisma.user.findFirst({
-    where: { id: userId },
-  });
-  if (!user) throw new Error('User not found');
+  const user = await prisma.user.findFirst({ where: { id: userId } });
+
+  if (!user) throw new Error("User not found");
   return user;
 }
 
-// Update the user's address
+// update user address
 export async function updateUserAddress(data: ShippingAddress) {
   try {
     const session = await auth();
 
     const currentUser = await prisma.user.findFirst({
-      where: { id: session?.user?.id },
+      where: {
+        id: session?.user?.id,
+      },
     });
 
-    if (!currentUser) throw new Error('User not found');
+    if (!currentUser) throw new Error("User not found");
 
     const address = shippingAddressSchema.parse(data);
 
     await prisma.user.update({
-      where: { id: currentUser.id },
+      where: {
+        id: currentUser.id,
+      },
       data: { address },
     });
 
-    return {
-      success: true,
-      message: 'User updated successfully',
-    };
+    return { success: true, message: "Address updated successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
 }
 
-// Update user's payment method
+// update user payment method
 export async function updateUserPaymentMethod(
   data: z.infer<typeof paymentMethodSchema>
 ) {
   try {
     const session = await auth();
+
     const currentUser = await prisma.user.findFirst({
-      where: { id: session?.user?.id },
+      where: {
+        id: session?.user?.id,
+      },
     });
 
-    if (!currentUser) throw new Error('User not found');
+    if (!currentUser) throw new Error("User not found");
 
     const paymentMethod = paymentMethodSchema.parse(data);
 
     await prisma.user.update({
-      where: { id: currentUser.id },
+      where: {
+        id: currentUser.id,
+      },
       data: { paymentMethod: paymentMethod.type },
     });
 
-    return {
-      success: true,
-      message: 'User updated successfully',
-    };
+    return { success: true, message: "Payment method updated successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
 }
 
-// Update the user profile
+// update user profile
 export async function updateProfile(user: { name: string; email: string }) {
   try {
     const session = await auth();
@@ -165,27 +159,23 @@ export async function updateProfile(user: { name: string; email: string }) {
       },
     });
 
-    if (!currentUser) throw new Error('User not found');
+    if (!currentUser) throw new Error("User not found");
 
     await prisma.user.update({
       where: {
         id: currentUser.id,
       },
-      data: {
-        name: user.name,
-      },
+      data: { name: user.name },
     });
 
-    return {
-      success: true,
-      message: 'User updated successfully',
-    };
+    return { success: true, message: "Profile updated successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
 }
 
-// Get all the users
+// get all the users
+
 export async function getAllUsers({
   limit = PAGE_SIZE,
   page,
@@ -193,15 +183,26 @@ export async function getAllUsers({
 }: {
   limit?: number;
   page: number;
-  query: string;
+  query?: string;
 }) {
+  // Query filter
   const queryFilter: Prisma.UserWhereInput =
-    query && query !== 'all'
+    query && query !== "all"
       ? {
-          name: {
-            contains: query,
-            mode: 'insensitive',
-          } as Prisma.StringFilter,
+          OR: [
+            {
+              email: {
+                contains: query,
+                mode: "insensitive",
+              } as Prisma.StringFilter,
+            },
+            {
+              name: {
+                contains: query,
+                mode: "insensitive",
+              } as Prisma.StringFilter,
+            },
+          ],
         }
       : {};
 
@@ -209,7 +210,7 @@ export async function getAllUsers({
     where: {
       ...queryFilter,
     },
-    orderBy: { createdAt: 'desc' },
+    orderBy: { createdAt: "desc" },
     take: limit,
     skip: (page - 1) * limit,
   });
@@ -222,42 +223,33 @@ export async function getAllUsers({
   };
 }
 
-// Delete a user
+// delete a user
 export async function deleteUser(id: string) {
   try {
-    await prisma.user.delete({ where: { id } });
+    await prisma.user.delete({
+      where: { id },
+    });
 
-    revalidatePath('/admin/users');
+    revalidatePath("/admin/users");
 
-    return {
-      success: true,
-      message: 'User deleted successfully',
-    };
+    return { success: true, message: "User deleted successfully" };
   } catch (error) {
-    return {
-      success: false,
-      message: formatError(error),
-    };
+    return { success: false, message: formatError(error) };
   }
 }
 
-// Update a user
-export async function updateUser(user: z.infer<typeof updateUserSchema>) {
+// update a user
+
+export async function editUser(user: z.infer<typeof editUserSchema>) {
   try {
     await prisma.user.update({
       where: { id: user.id },
-      data: {
-        name: user.name,
-        role: user.role,
-      },
+      data: { name: user.name, role: user.role },
     });
 
-    revalidatePath('/admin/users');
+    revalidatePath("/admin/users");
 
-    return {
-      success: true,
-      message: 'User updated successfully',
-    };
+    return { success: true, message: "User edited successfully" };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

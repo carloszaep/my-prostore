@@ -1,12 +1,12 @@
-'use client';
+"use client";
 
-import { useRouter } from 'next/navigation';
-import { Check, Loader } from 'lucide-react';
-import { Button } from '@/components/ui/button';
-import { useFormStatus } from 'react-dom';
-import { createOrder } from '@/lib/actions/order.actions';
+import { Button } from "@/components/ui/button";
+import { createOrder } from "@/lib/actions/order-actions";
+import { Check, Loader } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { useFormStatus } from "react-dom";
 
-const PlaceOrderForm = () => {
+const PlaceOrderFrom = () => {
   const router = useRouter();
 
   const handleSubmit = async (event: React.FormEvent) => {
@@ -21,23 +21,30 @@ const PlaceOrderForm = () => {
 
   const PlaceOrderButton = () => {
     const { pending } = useFormStatus();
+
     return (
-      <Button disabled={pending} className='w-full'>
+      <Button
+        disabled={pending}
+        className="w-full"
+      >
         {pending ? (
-          <Loader className='w-4 h-4 animate-spin' />
+          <Loader className="w-4 h-4 animate-spin" />
         ) : (
-          <Check className='w-4 h-4' />
-        )}{' '}
-        Place Order
+          <Check className="w-4 h-4" />
+        )}{" "}
+        Proceeds to Payment
       </Button>
     );
   };
 
   return (
-    <form onSubmit={handleSubmit} className='w-full'>
+    <form
+      onSubmit={handleSubmit}
+      className="w-full"
+    >
       <PlaceOrderButton />
     </form>
   );
 };
 
-export default PlaceOrderForm;
+export default PlaceOrderFrom;

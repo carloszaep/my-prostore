@@ -5,63 +5,78 @@ import {
   TableHead,
   TableHeader,
   TableRow,
-} from '@/components/ui/table';
-import { deleteOrder, getAllOrders } from '@/lib/actions/order.actions';
-import { formatCurrency, formatDateTime, formatId } from '@/lib/utils';
-import { Metadata } from 'next';
-import { Button } from '@/components/ui/button';
-import Link from 'next/link';
-import Pagination from '@/components/shared/pagination';
-import DeleteDialog from '@/components/shared/delete-dialog';
-import { requireAdmin } from '@/lib/auth-guard';
+} from "@/components/ui/table";
+import { Metadata } from "next";
+import { requireAdmin } from "@/lib/auth-guard";
+import {
+  deleteOrder,
+  deleteUnpaidOrders,
+  getAllOrders,
+} from "@/lib/actions/order-actions";
+import { formatCurrency, formatDateTime, formatId } from "@/lib/utils";
+import Link from "next/link";
+import { Button } from "@/components/ui/button";
+import Pagination from "@/components/shared/pagination";
+import DeleteDialog from "@/components/shared/delete-dialog";
 
 export const metadata: Metadata = {
-  title: 'Admin Orders',
+  title: "Admin Orders",
 };
 
 const AdminOrdersPage = async (props: {
   searchParams: Promise<{ page: string; query: string }>;
 }) => {
-  const { page = '1', query: searchText } = await props.searchParams;
+  const { page = "1", query: searchText } = await props.searchParams;
 
   await requireAdmin();
 
-  const orders = await getAllOrders({
-    page: Number(page),
-    query: searchText,
-  });
+  const orders = await getAllOrders({ page: Number(page), query: searchText });
 
   return (
-    <div className='space-y-2'>
-      <div className='flex items-center gap-3'>
-        <h1 className='h2-bold'>Orders</h1>
-        {searchText && (
-          <div>
-            Filtered by <i>&quot;{searchText}&quot;</i>{' '}
-            <Link href='/admin/orders'>
-              <Button variant='outline' size='sm'>
-                Remove Filter
-              </Button>
-            </Link>
-          </div>
-        )}
+    <div className="space-y-2">
+      <div className="flex-between">
+        <div className="flex items-center gap-3">
+          <h1 className="h2-bold">Orders</h1>
+          {searchText && (
+            <div>
+              Filter by <i>&quot;{searchText}&quot;</i>{" "}
+              <Link href={"/admin/orders"}>
+                <Button
+                  variant={"outline"}
+                  size={"sm"}
+                >
+                  Remove Filter
+                </Button>
+              </Link>
+            </div>
+          )}
+        </div>
+        <DeleteDialog
+          many={true}
+          actionMany={deleteUnpaidOrders}
+          text="Delete Not Paid Orders"
+          additionalAlertText="This action will delete all unpaid orders that are more than a 24h old."
+        />
       </div>
-      <div className='overflow-x-auto'>
+      <div className="overflow-x-auto ">
         <Table>
           <TableHeader>
-            <TableRow>
+            <TableRow className="text-xs md:text-sm">
               <TableHead>ID</TableHead>
               <TableHead>DATE</TableHead>
               <TableHead>BUYER</TableHead>
               <TableHead>TOTAL</TableHead>
               <TableHead>PAID</TableHead>
-              <TableHead>DELIVERED</TableHead>
+              <TableHead>STATUS</TableHead>
               <TableHead>ACTIONS</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {orders.data.map((order) => (
-              <TableRow key={order.id}>
+              <TableRow
+                className="text-xs md:text-sm"
+                key={order.id}
+              >
                 <TableCell>{formatId(order.id)}</TableCell>
                 <TableCell>
                   {formatDateTime(order.createdAt).dateTime}
@@ -71,18 +86,32 @@ const AdminOrdersPage = async (props: {
                 <TableCell>
                   {order.isPaid && order.paidAt
                     ? formatDateTime(order.paidAt).dateTime
-                    : 'Not Paid'}
+                    : "Not Paid"}
                 </TableCell>
                 <TableCell>
-                  {order.isDelivered && order.deliveredAt
-                    ? formatDateTime(order.deliveredAt).dateTime
-                    : 'Not Delivered'}
+                  {!order.isPaid && "Not Paid"}
+                  {order.isPaid && order.isDelivered && "Delivered"}
+                  {order.isPaid &&
+                    !order.isDelivered &&
+                    !order.trackingNumber &&
+                    "Waiting for shipment"}
+                  {order.isPaid &&
+                    !order.isDelivered &&
+                    order.trackingNumber &&
+                    "Shipped"}
                 </TableCell>
-                <TableCell>
-                  <Button asChild variant='outline' size='sm'>
+                <TableCell className="flex flex-col md:flex-row gap-2">
+                  <Button
+                    asChild
+                    variant={"outline"}
+                    size={"sm"}
+                  >
                     <Link href={`/order/${order.id}`}>Details</Link>
                   </Button>
-                  <DeleteDialog id={order.id} action={deleteOrder} />
+                  <DeleteDialog
+                    id={order.id}
+                    action={deleteOrder}
+                  />
                 </TableCell>
               </TableRow>
             ))}
@@ -91,7 +120,7 @@ const AdminOrdersPage = async (props: {
         {orders.totalPages > 1 && (
           <Pagination
             page={Number(page) || 1}
-            totalPages={orders?.totalPages}
+            totalPage={orders?.totalPages}
           />
         )}
       </div>

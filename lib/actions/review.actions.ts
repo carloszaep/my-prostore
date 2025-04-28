@@ -1,11 +1,11 @@
-'use server';
+"use server";
 
-import { z } from 'zod';
-import { insertReviewSchema } from '../validators';
-import { formatError } from '../utils';
-import { auth } from '@/auth';
-import { prisma } from '@/db/prisma';
-import { revalidatePath } from 'next/cache';
+import { z } from "zod";
+import { insertReviewSchema } from "../validators";
+import { formatError } from "../utils";
+import { auth } from "@/auth";
+import { prisma } from "@/db/prisma";
+import { revalidatePath } from "next/cache";
 
 // Create & Update Reviews
 export async function createUpdateReview(
@@ -13,7 +13,7 @@ export async function createUpdateReview(
 ) {
   try {
     const session = await auth();
-    if (!session) throw new Error('User is not authenticated');
+    if (!session) throw new Error("User is not authenticated");
 
     // Validate and store the review
     const review = insertReviewSchema.parse({
@@ -26,7 +26,7 @@ export async function createUpdateReview(
       where: { id: review.productId },
     });
 
-    if (!product) throw new Error('Product not found');
+    if (!product) throw new Error("Product not found");
 
     // Check if user already reviewed
     const reviewExists = await prisma.review.findFirst({
@@ -77,7 +77,7 @@ export async function createUpdateReview(
 
     return {
       success: true,
-      message: 'Review Updated Successfully',
+      message: "Review Updated Successfully",
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -98,7 +98,7 @@ export async function getReviews({ productId }: { productId: string }) {
       },
     },
     orderBy: {
-      createdAt: 'desc',
+      createdAt: "desc",
     },
   });
 
@@ -113,7 +113,7 @@ export async function getReviewByProductId({
 }) {
   const session = await auth();
 
-  if (!session) throw new Error('User is not authenticated');
+  if (!session) throw new Error("User is not authenticated");
 
   return await prisma.review.findFirst({
     where: {

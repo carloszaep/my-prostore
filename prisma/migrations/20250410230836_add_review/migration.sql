@@ -1,3 +1,9 @@
+-- AlterTable
+ALTER TABLE "Order" ADD COLUMN     "trackingNumber" TEXT;
+
+-- AlterTable
+ALTER TABLE "Product" ADD COLUMN     "size" TEXT;
+
 -- CreateTable
 CREATE TABLE "Review" (
     "id" UUID NOT NULL DEFAULT gen_random_uuid(),
@@ -6,7 +12,7 @@ CREATE TABLE "Review" (
     "rating" INTEGER NOT NULL,
     "title" TEXT NOT NULL,
     "description" TEXT NOT NULL,
-    "isVerifiedPurchase" BOOLEAN NOT NULL DEFAULT true,
+    "isVerifiedPurchase" BOOLEAN NOT NULL DEFAULT false,
     "createdAt" TIMESTAMP(6) NOT NULL DEFAULT CURRENT_TIMESTAMP,
 
     CONSTRAINT "Review_pkey" PRIMARY KEY ("id")

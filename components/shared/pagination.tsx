@@ -1,23 +1,25 @@
-'use client';
-import { useRouter, useSearchParams } from 'next/navigation';
-import { Button } from '../ui/button';
-import { formUrlQuery } from '@/lib/utils';
+"use client";
+
+import { useRouter, useSearchParams } from "next/navigation";
+import { Button } from "../ui/button";
+import { formUrlQuery } from "@/lib/utils";
 
 type PaginationProps = {
   page: number | string;
-  totalPages: number;
+  totalPage: number;
   urlParamName?: string;
 };
 
-const Pagination = ({ page, totalPages, urlParamName }: PaginationProps) => {
+const Pagination = ({ page, totalPage, urlParamName }: PaginationProps) => {
   const router = useRouter();
   const searchParams = useSearchParams();
 
   const handleClick = (btnType: string) => {
-    const pageValue = btnType === 'next' ? Number(page) + 1 : Number(page) - 1;
+    const pageValue = btnType === "next" ? Number(page) + 1 : Number(page) - 1;
+
     const newUrl = formUrlQuery({
       params: searchParams.toString(),
-      key: urlParamName || 'page',
+      key: urlParamName || "page",
       value: pageValue.toString(),
     });
 
@@ -25,22 +27,25 @@ const Pagination = ({ page, totalPages, urlParamName }: PaginationProps) => {
   };
 
   return (
-    <div className='flex gap-2'>
+    <div className="flex gap-2 py-6 items-center justify-center">
       <Button
-        size='lg'
-        variant='outline'
-        className='w-28'
+        size={"lg"}
+        variant={"outline"}
+        className="w-28 mr-auto md:mr-0"
         disabled={Number(page) <= 1}
-        onClick={() => handleClick('prev')}
+        onClick={() => handleClick("prev")}
       >
         Previous
       </Button>
+      <span className="flex items-center justify-center w-28 font-bold">
+        {page} of {totalPage}
+      </span>
       <Button
-        size='lg'
-        variant='outline'
-        className='w-28'
-        disabled={Number(page) >= totalPages}
-        onClick={() => handleClick('next')}
+        size={"lg"}
+        variant={"outline"}
+        className="w-28 ml-auto md:ml-0"
+        disabled={Number(page) >= totalPage}
+        onClick={() => handleClick("next")}
       >
         Next
       </Button>

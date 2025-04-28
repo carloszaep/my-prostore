@@ -28,7 +28,7 @@ CREATE TABLE "OrderItem" (
     "slug" TEXT NOT NULL,
     "image" TEXT NOT NULL,
 
-    CONSTRAINT "orderitems_orderId_productId_pk" PRIMARY KEY ("orderId","productId")
+    CONSTRAINT "order_item_order_id_product_id_pk" PRIMARY KEY ("orderId","productId")
 );
 
 -- AddForeignKey

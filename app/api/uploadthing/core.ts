@@ -1,17 +1,22 @@
-import { createUploadthing, type FileRouter } from 'uploadthing/next';
-import { UploadThingError } from 'uploadthing/server';
-import { auth } from '@/auth';
+import { createUploadthing, type FileRouter } from "uploadthing/next";
+import { UploadThingError } from "uploadthing/server";
+import { auth } from "@/auth";
 
 const f = createUploadthing();
 
 export const ourFileRouter = {
   imageUploader: f({
-    image: { maxFileSize: '4MB' },
+    image: {
+      maxFileSize: "4MB",
+    },
   })
+    // Set permissions and file types for this FileRoute
     .middleware(async () => {
       const session = await auth();
-      if (!session) throw new UploadThingError('Unauthorized');
-      return { userId: session?.user?.id };
+      // If you throw, the user will not be able to upload
+      if (!session) throw new UploadThingError("Unauthorized");
+      // Whatever is returned here is accessible in onUploadComplete as `metadata`
+      return { userId: session.user.id };
     })
     .onUploadComplete(async ({ metadata }) => {
       return { uploadedBy: metadata.userId };

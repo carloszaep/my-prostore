@@ -1,47 +1,47 @@
-"use server";
+'use server';
 
-import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { convertToPlainObject, formatError } from "../utils";
-import { auth } from "@/auth";
-import { getMyCart } from "./cart.actions";
-import { getUserById } from "./user.actions";
-import { insertOrderSchema } from "../validators";
-import { prisma } from "@/db/prisma";
-import { CartItem, PaymentResult, ShippingAddress } from "@/types";
-import { paypal } from "../paypal";
-import { revalidatePath } from "next/cache";
-import { PAGE_SIZE, PAYMENT_METHODS } from "../constants";
-import { Prisma } from "@prisma/client";
-import { sendOrderUpdatedEmail, sendPurchaseReceiptEmail } from "@/email";
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import { convertToPlainObject, formatError } from '../utils';
+import { auth } from '@/auth';
+import { getMyCart } from './cart.actions';
+import { getUserById } from './user.actions';
+import { insertOrderSchema } from '../validators';
+import { prisma } from '@/db/prisma';
+import { CartItem, PaymentResult, ShippingAddress } from '@/types';
+import { paypal } from '../paypal';
+import { revalidatePath } from 'next/cache';
+import { PAGE_SIZE, PAYMENT_METHODS } from '../constants';
+import { Prisma } from '@prisma/client';
+import { sendOrderUpdatedEmail, sendPurchaseReceiptEmail } from '@/email';
 
 // create order and create order items
 
 export async function createOrder() {
   try {
     const session = await auth();
-    if (!session) throw new Error("User not found");
+    if (!session) throw new Error('User not found');
 
     const cart = await getMyCart();
 
     const userId = session?.user?.id;
-    if (!userId) throw new Error("User not found");
+    if (!userId) throw new Error('User not found');
 
     const user = await getUserById(userId);
 
     if (!cart || cart.items.length === 0)
-      return { success: false, message: "Cart is empty", redirectTo: "/cart" };
+      return { success: false, message: 'Cart is empty', redirectTo: '/cart' };
     if (!user.address)
       return {
         success: false,
-        message: "No shipping address",
-        redirectTo: "/shipping-address",
+        message: 'No shipping address',
+        redirectTo: '/shipping-address',
       };
 
     if (!user.paymentMethod && PAYMENT_METHODS.length > 1)
       return {
         success: false,
-        message: "No payment method",
-        redirectTo: "/payment-method",
+        message: 'No payment method',
+        redirectTo: '/payment-method',
       };
 
     // create order object
@@ -54,6 +54,7 @@ export async function createOrder() {
       taxPrice: cart.taxPrice,
       totalPrice: cart.totalPrice,
     });
+    console.log('sadasds');
 
     // create a transaction to create order and order items
     const insertedOrderId = await prisma.$transaction(async (tx) => {
@@ -85,11 +86,11 @@ export async function createOrder() {
       return insertedOrder.id;
     });
 
-    if (!insertedOrderId) throw new Error("Failed to create order");
+    if (!insertedOrderId) throw new Error('Failed to create order');
 
     return {
       success: true,
-      message: "Order created",
+      message: 'Order created',
       redirectTo: `/order/${insertedOrderId}`,
     };
   } catch (error) {
@@ -132,8 +133,8 @@ export async function createPayPalOrder(orderId: string) {
         data: {
           paymentResult: {
             id: paypalOrder.id,
-            email_address: "",
-            status: "",
+            email_address: '',
+            status: '',
             pricePaid: 0,
           },
         },
@@ -141,11 +142,11 @@ export async function createPayPalOrder(orderId: string) {
 
       return {
         success: true,
-        message: "Item order created successfully",
+        message: 'Item order created successfully',
         data: paypalOrder.id,
       };
     } else {
-      throw new Error("Order not found");
+      throw new Error('Order not found');
     }
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -164,16 +165,16 @@ export async function approvePayPalOrder(
         id: orderId,
       },
     });
-    if (!order) throw new Error("Order not found");
+    if (!order) throw new Error('Order not found');
 
     const captureData = await paypal.capturePayment(data.orderID);
 
     if (
       !captureData ||
       captureData.id !== (order.paymentResult as PaymentResult)?.id ||
-      captureData.status !== "COMPLETED"
+      captureData.status !== 'COMPLETED'
     ) {
-      throw new Error("Error in paypal payment");
+      throw new Error('Error in paypal payment');
     }
 
     // update order to paid
@@ -192,7 +193,7 @@ export async function approvePayPalOrder(
 
     return {
       success: true,
-      message: "Order has been paid",
+      message: 'Order has been paid',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -216,9 +217,9 @@ export async function updateOrderToPaid({
       orderitems: true,
     },
   });
-  if (!order) throw new Error("Order not found");
+  if (!order) throw new Error('Order not found');
 
-  if (order.isPaid) throw new Error("Order is already paid");
+  if (order.isPaid) throw new Error('Order is already paid');
 
   // transaction to update order and account for product stock
 
@@ -253,7 +254,7 @@ export async function updateOrderToPaid({
     },
   });
 
-  if (!updateOrder) throw new Error("Order nor found");
+  if (!updateOrder) throw new Error('Order nor found');
 
   sendPurchaseReceiptEmail({
     order: {
@@ -275,11 +276,11 @@ export async function getMyOrders({
 }) {
   const session = await auth();
 
-  if (!session) throw new Error("User is not authorized");
+  if (!session) throw new Error('User is not authorized');
 
   const data = await prisma.order.findMany({
     where: { userId: session?.user?.id, isPaid: true },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: limit,
     skip: (page - 1) * limit,
   });
@@ -325,7 +326,7 @@ export async function getOrderSummary() {
 
   // get latest sales
   const latestSales = await prisma.order.findMany({
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     include: { user: { select: { name: true } } },
     take: 6,
   });
@@ -352,12 +353,12 @@ export async function getAllOrders({
 }) {
   // Query filter
   const queryFilter: Prisma.OrderWhereInput =
-    query && query !== "all"
+    query && query !== 'all'
       ? {
           user: {
             name: {
               contains: query,
-              mode: "insensitive",
+              mode: 'insensitive',
             },
           },
         }
@@ -365,7 +366,7 @@ export async function getAllOrders({
 
   const data = await prisma.order.findMany({
     where: { ...queryFilter },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: limit,
     skip: (page - 1) * limit,
     include: { user: { select: { name: true } } },
@@ -387,11 +388,11 @@ export async function deleteOrder(id: string) {
       where: { id },
     });
 
-    revalidatePath("/admin/orders");
+    revalidatePath('/admin/orders');
 
     return {
       success: true,
-      message: "Order deleted successfully",
+      message: 'Order deleted successfully',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -407,17 +408,17 @@ export async function deleteUnpaidOrders() {
     });
 
     if (orders.length === 0)
-      throw new Error("No unpaid orders found withing 24h");
+      throw new Error('No unpaid orders found withing 24h');
 
     await prisma.order.deleteMany({
       where: { isPaid: false },
     });
 
-    revalidatePath("/admin/orders");
+    revalidatePath('/admin/orders');
 
     return {
       success: true,
-      message: "Unpaid orders deleted successfully",
+      message: 'Unpaid orders deleted successfully',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -434,7 +435,7 @@ export async function updateOrderToPaidCOD(orderId: string) {
 
     return {
       success: true,
-      message: "Order marked as paid",
+      message: 'Order marked as paid',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -449,8 +450,8 @@ export async function deliverOrder(orderId: string) {
       where: { id: orderId },
     });
 
-    if (!order) throw new Error("Order not found");
-    if (!order.isPaid) throw new Error("Order is not paid");
+    if (!order) throw new Error('Order not found');
+    if (!order.isPaid) throw new Error('Order is not paid');
 
     await prisma.order.update({
       where: { id: orderId },
@@ -464,7 +465,7 @@ export async function deliverOrder(orderId: string) {
 
     return {
       success: true,
-      message: "Order marked as delivered",
+      message: 'Order marked as delivered',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -503,7 +504,7 @@ export async function insertTrackingNumber({
 
     return {
       success: true,
-      message: "Tracking number added successfully",
+      message: 'Tracking number added successfully',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };
@@ -522,7 +523,7 @@ export async function removeTrackingNumber(orderId: string) {
 
     return {
       success: true,
-      message: "Tracking number removed successfully",
+      message: 'Tracking number removed successfully',
     };
   } catch (error) {
     return { success: false, message: formatError(error) };

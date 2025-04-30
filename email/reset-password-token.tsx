@@ -7,7 +7,7 @@ import {
   Container,
   Heading,
   Text,
-  Button,
+  Link,
 } from '@react-email/components';
 
 interface Props {
@@ -33,17 +33,18 @@ export default function ResetPasswordEmail({ resetUrl }: Props) {
           <Text style={{ marginBottom: '16px' }}>
             Click the button below to set a new password for your account:
           </Text>
-          <Button
+          <Link
             style={{
               backgroundColor: '#2563eb',
               color: 'white',
               borderRadius: '4px',
               textDecoration: 'none',
+              padding: '10px 20px',
             }}
             href={resetUrl}
           >
             Reset Password
-          </Button>
+          </Link>
           <Text style={{ marginTop: '16px', fontSize: '12px', color: '#666' }}>
             If you didn’t request this, just ignore this email.
           </Text>

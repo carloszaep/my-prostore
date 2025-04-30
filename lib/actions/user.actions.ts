@@ -86,10 +86,7 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
 }
 
 // send user reset password email
-export async function sendResetPassword(
-  prevState: unknown,
-  formData: FormData
-) {
+export async function forgotPassword(prevState: unknown, formData: FormData) {
   try {
     // Validate input
     const email = forgotPasswordSchema.parse({

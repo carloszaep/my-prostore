@@ -45,6 +45,7 @@ model User {
   cart          Cart[]
   order         Order[]
   Review        Review[]
+  resetToken    String?
 }
 
 model Account {
@@ -59,7 +60,6 @@ model Account {
   scope             String?
   id_token          String?
   session_state     String?
-  resetToken        String?
 
   createdAt DateTime @default(now()) @db.Timestamp(6)
   updatedAt DateTime @updatedAt

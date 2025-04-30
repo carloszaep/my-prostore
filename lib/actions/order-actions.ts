@@ -54,7 +54,6 @@ export async function createOrder() {
       taxPrice: cart.taxPrice,
       totalPrice: cart.totalPrice,
     });
-    console.log('sadasds');
 
     // create a transaction to create order and order items
     const insertedOrderId = await prisma.$transaction(async (tx) => {

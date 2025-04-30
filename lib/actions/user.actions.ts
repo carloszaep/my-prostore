@@ -1,22 +1,25 @@
-"use server";
+'use server';
 
 import {
   editUserSchema,
+  forgotPasswordSchema,
   paymentMethodSchema,
   shippingAddressSchema,
   signInFormSchema,
   signUpFormSchema,
-} from "../validators";
-import { auth, signIn, signOut } from "@/auth";
-import { isRedirectError } from "next/dist/client/components/redirect-error";
-import { hashSync } from "bcrypt-ts-edge";
-import { prisma } from "@/db/prisma";
-import { formatError } from "../utils";
-import { ShippingAddress } from "@/types";
-import { z } from "zod";
-import { PAGE_SIZE } from "../constants";
-import { revalidatePath } from "next/cache";
-import { Prisma } from "@prisma/client";
+} from '../validators';
+import { auth, signIn, signOut } from '@/auth';
+import { isRedirectError } from 'next/dist/client/components/redirect-error';
+import { hashSync } from 'bcrypt-ts-edge';
+import { prisma } from '@/db/prisma';
+import { formatError } from '../utils';
+import { ShippingAddress } from '@/types';
+import { z } from 'zod';
+import { PAGE_SIZE } from '../constants';
+import { revalidatePath } from 'next/cache';
+import { Prisma } from '@prisma/client';
+import { redirect } from 'next/navigation';
+import { sendResetPasswordEmail } from '@/email';
 
 // sign in user with credentials
 
@@ -26,19 +29,19 @@ export async function signinWithCredentials(
 ) {
   try {
     const user = signInFormSchema.parse({
-      email: formData.get("email"),
-      password: formData.get("password"),
+      email: formData.get('email'),
+      password: formData.get('password'),
     });
 
-    await signIn("credentials", user);
+    await signIn('credentials', user);
 
-    return { success: true, message: "Sign in successful" };
+    return { success: true, message: 'Sign in successful' };
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
     }
 
-    return { success: false, message: "invalid credentials" };
+    return { success: false, message: 'invalid credentials' };
   }
 }
 
@@ -52,10 +55,10 @@ export async function signOutUser() {
 export async function signUpUser(prevState: unknown, formData: FormData) {
   try {
     const user = signUpFormSchema.parse({
-      name: formData.get("name"),
-      email: formData.get("email"),
-      password: formData.get("password"),
-      confirmPassword: formData.get("confirmPassword"),
+      name: formData.get('name'),
+      email: formData.get('email'),
+      password: formData.get('password'),
+      confirmPassword: formData.get('confirmPassword'),
     });
 
     const plainPassword = user.password;
@@ -70,9 +73,9 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
       },
     });
 
-    await signIn("credentials", { email: user.email, password: plainPassword });
+    await signIn('credentials', { email: user.email, password: plainPassword });
 
-    return { success: true, message: "Sign up successful" };
+    return { success: true, message: 'Sign up successful' };
   } catch (error) {
     if (isRedirectError(error)) {
       throw error;
@@ -82,11 +85,59 @@ export async function signUpUser(prevState: unknown, formData: FormData) {
   }
 }
 
+// send user reset password email
+export async function sendResetPassword(
+  prevState: unknown,
+  formData: FormData
+) {
+  try {
+    // Validate input
+    const email = forgotPasswordSchema.parse({
+      email: formData.get('email'),
+    });
+
+    // Find the user by email
+    const user = await prisma.user.findUnique({
+      where: { email: email.email },
+    });
+    if (!user) throw new Error('User not found');
+
+    // row email
+    const rowEmail = user.email;
+
+    // Generate a secure reset token by hashing the email with a salt
+    email.email = hashSync(email.email, 10);
+    // Save the resetToken to the user record in the database
+    // await prisma.user.update({
+    //   where: { id: user.id },
+    //   data: { resetToken: email.email },
+    // });
+
+    // Construct reset link
+    const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${encodeURIComponent(email.email)}`;
+
+    sendResetPasswordEmail({
+      email: rowEmail,
+      resetUrl,
+    });
+
+    // Redirect user to a confirmation page
+    redirect('/reset-email-sent');
+  } catch (error) {
+    // Let redirect errors bubble up
+    if (error instanceof Error && 'status' in error) {
+      throw error;
+    }
+
+    return { success: false, message: (error as Error).message };
+  }
+}
+
 // get user by id
 export async function getUserById(userId: string) {
   const user = await prisma.user.findFirst({ where: { id: userId } });
 
-  if (!user) throw new Error("User not found");
+  if (!user) throw new Error('User not found');
   return user;
 }
 
@@ -101,7 +152,7 @@ export async function updateUserAddress(data: ShippingAddress) {
       },
     });
 
-    if (!currentUser) throw new Error("User not found");
+    if (!currentUser) throw new Error('User not found');
 
     const address = shippingAddressSchema.parse(data);
 
@@ -112,7 +163,7 @@ export async function updateUserAddress(data: ShippingAddress) {
       data: { address },
     });
 
-    return { success: true, message: "Address updated successfully" };
+    return { success: true, message: 'Address updated successfully' };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -131,7 +182,7 @@ export async function updateUserPaymentMethod(
       },
     });
 
-    if (!currentUser) throw new Error("User not found");
+    if (!currentUser) throw new Error('User not found');
 
     const paymentMethod = paymentMethodSchema.parse(data);
 
@@ -142,7 +193,7 @@ export async function updateUserPaymentMethod(
       data: { paymentMethod: paymentMethod.type },
     });
 
-    return { success: true, message: "Payment method updated successfully" };
+    return { success: true, message: 'Payment method updated successfully' };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -159,7 +210,7 @@ export async function updateProfile(user: { name: string; email: string }) {
       },
     });
 
-    if (!currentUser) throw new Error("User not found");
+    if (!currentUser) throw new Error('User not found');
 
     await prisma.user.update({
       where: {
@@ -168,7 +219,7 @@ export async function updateProfile(user: { name: string; email: string }) {
       data: { name: user.name },
     });
 
-    return { success: true, message: "Profile updated successfully" };
+    return { success: true, message: 'Profile updated successfully' };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -187,19 +238,19 @@ export async function getAllUsers({
 }) {
   // Query filter
   const queryFilter: Prisma.UserWhereInput =
-    query && query !== "all"
+    query && query !== 'all'
       ? {
           OR: [
             {
               email: {
                 contains: query,
-                mode: "insensitive",
+                mode: 'insensitive',
               } as Prisma.StringFilter,
             },
             {
               name: {
                 contains: query,
-                mode: "insensitive",
+                mode: 'insensitive',
               } as Prisma.StringFilter,
             },
           ],
@@ -210,7 +261,7 @@ export async function getAllUsers({
     where: {
       ...queryFilter,
     },
-    orderBy: { createdAt: "desc" },
+    orderBy: { createdAt: 'desc' },
     take: limit,
     skip: (page - 1) * limit,
   });
@@ -230,9 +281,9 @@ export async function deleteUser(id: string) {
       where: { id },
     });
 
-    revalidatePath("/admin/users");
+    revalidatePath('/admin/users');
 
-    return { success: true, message: "User deleted successfully" };
+    return { success: true, message: 'User deleted successfully' };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
@@ -247,9 +298,9 @@ export async function editUser(user: z.infer<typeof editUserSchema>) {
       data: { name: user.name, role: user.role },
     });
 
-    revalidatePath("/admin/users");
+    revalidatePath('/admin/users');
 
-    return { success: true, message: "User edited successfully" };
+    return { success: true, message: 'User edited successfully' };
   } catch (error) {
     return { success: false, message: formatError(error) };
   }

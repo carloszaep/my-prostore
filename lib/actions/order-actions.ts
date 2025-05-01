@@ -375,7 +375,10 @@ export async function getAllOrders({
     orderBy: { createdAt: 'desc' },
     take: limit,
     skip: (page - 1) * limit,
-    include: { user: { select: { name: true } } },
+    include: {
+      user: { select: { name: true } },
+      guestUser: { select: { name: true } },
+    },
   });
 
   const dataCount = await prisma.order.count();

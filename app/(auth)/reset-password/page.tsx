@@ -9,21 +9,18 @@ import { APP_NAME } from '@/lib/constants';
 import { Metadata } from 'next';
 import Image from 'next/image';
 import Link from 'next/link';
-import { auth } from '@/auth';
-import { redirect } from 'next/navigation';
-import ForgotPasswordForm from './forgot-password-form';
+
+import ResetPasswordForm from './reset-password-form';
 
 export const metadata: Metadata = {
-  title: 'Forgot Password',
-  description: 'Forgot your password',
+  title: 'Reset Password',
+  description: 'Reset your password',
 };
 
-const ForgotPasswordPage = async () => {
-  const session = await auth();
-
-  if (session) {
-    return redirect('/');
-  }
+const ResetPasswordPage = async (props: {
+  searchParams: Promise<{ token: string | null }>;
+}) => {
+  const { token } = await props.searchParams;
 
   return (
     <div className='w-full max-w-md mx-auto'>
@@ -38,17 +35,17 @@ const ForgotPasswordPage = async () => {
               priority={true}
             />
           </Link>
-          <CardTitle className='text-center'>Forgot Password</CardTitle>
+          <CardTitle className='text-center'>Reset Password</CardTitle>
           <CardDescription className='text-center'>
             Reset your password
           </CardDescription>
         </CardHeader>
         <CardContent className='space-y-4'>
-          <ForgotPasswordForm />
+          <ResetPasswordForm token={token} />
         </CardContent>
       </Card>
     </div>
   );
 };
 
-export default ForgotPasswordPage;
+export default ResetPasswordPage;

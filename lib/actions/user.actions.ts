@@ -4,6 +4,7 @@ import {
   editUserSchema,
   forgotPasswordSchema,
   paymentMethodSchema,
+  resetPasswordSchema,
   shippingAddressSchema,
   signInFormSchema,
   signUpFormSchema,
@@ -15,10 +16,9 @@ import { prisma } from '@/db/prisma';
 import { formatError } from '../utils';
 import { ShippingAddress } from '@/types';
 import { z } from 'zod';
-import { PAGE_SIZE } from '../constants';
+import { PAGE_SIZE, SERVER_URL } from '../constants';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
-import { redirect } from 'next/navigation';
 import { sendResetPasswordEmail } from '@/email';
 
 // sign in user with credentials
@@ -105,21 +105,23 @@ export async function forgotPassword(prevState: unknown, formData: FormData) {
     // Generate a secure reset token by hashing the email with a salt
     email.email = hashSync(email.email, 10);
     // Save the resetToken to the user record in the database
-    // await prisma.user.update({
-    //   where: { id: user.id },
-    //   data: { resetToken: email.email },
-    // });
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { resetToken: email.email },
+    });
 
     // Construct reset link
-    const resetUrl = `${process.env.NEXT_PUBLIC_BASE_URL}/reset-password?token=${encodeURIComponent(email.email)}`;
+    const resetUrl = `${SERVER_URL}/reset-password?token=${encodeURIComponent(email.email)}`;
 
     sendResetPasswordEmail({
       email: rowEmail,
       resetUrl,
     });
 
-    // Redirect user to a confirmation page
-    redirect('/reset-email-sent');
+    return {
+      success: true,
+      message: 'Reset password email sent successfully',
+    };
   } catch (error) {
     // Let redirect errors bubble up
     if (error instanceof Error && 'status' in error) {
@@ -128,7 +130,68 @@ export async function forgotPassword(prevState: unknown, formData: FormData) {
 
     return { success: false, message: (error as Error).message };
   }
+  // Redirect user to a confirmation page
 }
+
+// reset user password
+export async function resetPassword(prevState: unknown, formData: FormData) {
+  try {
+    const inputs = resetPasswordSchema.parse({
+      token: formData.get('token'),
+      password: formData.get('password'),
+      confirmPassword: formData.get('confirmPassword'),
+    });
+
+    const token = inputs?.token;
+
+    // const plainPassword = inputs.password;
+
+    inputs.password = hashSync(inputs.password, 10);
+
+    const session = await auth();
+
+    if (session) {
+      // Check if the user is already logged in
+      // Update the user's password and clear the resetToken
+      await prisma.user.update({
+        where: { id: session.user.id },
+        data: { password: inputs.password, resetToken: null },
+      });
+
+      // await signIn('credentials', {
+      //   email: session.user.email,
+      //   password: plainPassword,
+      // });
+
+      return { success: true, message: 'Password was changed' };
+    }
+
+    if (!token) {
+      throw new Error('Token is required');
+    }
+
+    // Find the user by resetToken
+    const user = await prisma.user.findFirst({
+      where: { resetToken: { equals: token } },
+    });
+
+    if (!user) throw new Error('Invalid or expired token');
+
+    // Update the user's password and clear the resetToken
+    await prisma.user.update({
+      where: { id: user.id },
+      data: { password: inputs.password, resetToken: null },
+    });
+
+    // await signIn('credentials', { email: user.email, password: plainPassword });
+
+    return { success: true, message: 'Password was changed' };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// get user by email
 
 // get user by id
 export async function getUserById(userId: string) {

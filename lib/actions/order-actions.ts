@@ -308,6 +308,7 @@ export async function getOrderSummary() {
 
   // calculate the total sales
   const totalSales = await prisma.order.aggregate({
+    where: { isPaid: true },
     _sum: {
       totalPrice: true,
     },

@@ -15,6 +15,7 @@ interface Props {
 }
 
 export default function ResetPasswordEmail({ resetUrl }: Props) {
+  console.log(resetUrl, 'resetUrl in email template');
   return (
     <Html>
       <Head />

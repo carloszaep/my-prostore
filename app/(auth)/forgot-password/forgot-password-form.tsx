@@ -28,24 +28,46 @@ const ForgotPasswordForm = () => {
   return (
     <form action={action}>
       <div className='space-y-6'>
-        <div>
-          <Label htmlFor='email'>Email</Label>
-          <Input
-            id='email'
-            name='email'
-            type='email'
-            required
-            autoComplete='email'
-            defaultValue={signUpDefaultValues.email}
-          />
-        </div>
+        {!(data && data.success) && (
+          <>
+            <div>
+              <Label htmlFor='email'>Email</Label>
+              <Input
+                id='email'
+                name='email'
+                type='email'
+                required
+                autoComplete='email'
+                defaultValue={signUpDefaultValues.email}
+              />
+            </div>
 
-        <div>
-          <ForgotPasswordButton />
-        </div>
+            <div>
+              <ForgotPasswordButton />
+            </div>
+          </>
+        )}
 
         {data && !data.success && (
           <div className='text-center text-destructive'>{data.message}</div>
+        )}
+
+        {data && data.success && (
+          <div className='flex flex-col items-center justify-center'>
+            <div className='text-center text-success'>{data.message}</div>
+            <p className='text-center text-sm text-muted-foreground'>
+              If you don&apos;t see the email, please check your spam folder.
+            </p>
+            <Button
+              variant={'outline'}
+              className='mt-4 ml-2'
+              onClick={() => {
+                window.location.href = '/';
+              }}
+            >
+              Go back home
+            </Button>
+          </div>
         )}
 
         <div className='text-sm text-center text-muted-foreground'>

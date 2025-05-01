@@ -72,6 +72,20 @@ export const forgotPasswordSchema = z.object({
   email: z.string().email('Invalid email address'),
 });
 
+// schema for resetting password
+export const resetPasswordSchema = z
+  .object({
+    token: z.string().optional().nullable(),
+    password: z.string().min(6, 'Password must be at least 6 characters'),
+    confirmPassword: z
+      .string()
+      .min(6, 'Password must be at least 6 characters'),
+  })
+  .refine((data) => data.password === data.confirmPassword, {
+    message: "Password don't match",
+    path: ['confirmPassword'],
+  });
+
 // cart schemas
 
 export const cartItemSchema = z.object({

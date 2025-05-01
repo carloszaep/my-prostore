@@ -4,7 +4,7 @@ import { isRedirectError } from 'next/dist/client/components/redirect-error';
 import { convertToPlainObject, formatError } from '../utils';
 import { auth } from '@/auth';
 import { getMyCart } from './cart.actions';
-import { getUserById } from './user.actions';
+import { userCheckoutInfo } from './user.actions';
 import { insertOrderSchema } from '../validators';
 import { prisma } from '@/db/prisma';
 import { CartItem, PaymentResult, ShippingAddress } from '@/types';
@@ -18,26 +18,27 @@ import { sendOrderUpdatedEmail, sendPurchaseReceiptEmail } from '@/email';
 
 export async function createOrder() {
   try {
-    const session = await auth();
-    if (!session) throw new Error('User not found');
-
     const cart = await getMyCart();
-
-    const userId = session?.user?.id;
-    if (!userId) throw new Error('User not found');
-
-    const user = await getUserById(userId);
 
     if (!cart || cart.items.length === 0)
       return { success: false, message: 'Cart is empty', redirectTo: '/cart' };
-    if (!user.address)
+
+    const session = await auth();
+    const userId = session?.user?.id;
+
+    const { address, paymentMethod } = await userCheckoutInfo(
+      userId || null,
+      cart.guestId || null
+    );
+
+    if (!address)
       return {
         success: false,
         message: 'No shipping address',
         redirectTo: '/shipping-address',
       };
 
-    if (!user.paymentMethod && PAYMENT_METHODS.length > 1)
+    if (!paymentMethod && PAYMENT_METHODS.length > 1)
       return {
         success: false,
         message: 'No payment method',
@@ -46,9 +47,10 @@ export async function createOrder() {
 
     // create order object
     const order = insertOrderSchema.parse({
-      userId: userId,
-      shippingAddress: user.address,
-      paymentMethod: user.paymentMethod || PAYMENT_METHODS[0],
+      userId: userId || null,
+      guestId: cart.guestId || null,
+      shippingAddress: address,
+      paymentMethod: paymentMethod || PAYMENT_METHODS[0],
       itemsPrice: cart.itemsPrice,
       shippingPrice: cart.shippingPrice,
       taxPrice: cart.taxPrice,
@@ -107,6 +109,7 @@ export async function getOrderById(orderId: string) {
     include: {
       orderitems: true,
       user: { select: { name: true, email: true } },
+      guestUser: { select: { name: true, email: true } },
     },
   });
 
@@ -250,6 +253,7 @@ export async function updateOrderToPaid({
     include: {
       orderitems: true,
       user: { select: { name: true, email: true } },
+      guestUser: { select: { name: true, email: true } },
     },
   });
 
@@ -260,6 +264,8 @@ export async function updateOrderToPaid({
       ...updateOrder,
       shippingAddress: updateOrder.shippingAddress as ShippingAddress,
       paymentResult: updateOrder.shippingAddress as PaymentResult,
+      user: updateOrder.user as { name: string; email: string },
+      guestUser: updateOrder.guestUser as { name: string; email: string },
     },
   });
 }

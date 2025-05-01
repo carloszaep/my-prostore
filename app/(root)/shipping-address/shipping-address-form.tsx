@@ -20,7 +20,10 @@ import {
 import { Input } from '@/components/ui/input';
 import { Button } from '@/components/ui/button';
 import { ArrowRight, Loader } from 'lucide-react';
-import { updateUserAddress } from '@/lib/actions/user.actions';
+import {
+  createGuestWithAddress,
+  updateUserAddress,
+} from '@/lib/actions/user.actions';
 
 const ShippingAddressFrom = ({
   address,
@@ -45,6 +48,17 @@ const ShippingAddressFrom = ({
     startTransition(async () => {
       if (isSingIn) {
         const res = await updateUserAddress(values);
+
+        if (!res.success) {
+          toast({
+            variant: 'destructive',
+            description: res.message,
+          });
+
+          return;
+        }
+      } else {
+        const res = await createGuestWithAddress(values);
 
         if (!res.success) {
           toast({

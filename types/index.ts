@@ -30,7 +30,11 @@ export type Order = z.infer<typeof insertOrderSchema> & {
   deliveredAt: Date | null;
   orderitems: OrderItem[];
   trackingNumber: string | null;
-  user: {
+  user?: {
+    name: string;
+    email: string;
+  };
+  guestUser?: {
     name: string;
     email: string;
   };

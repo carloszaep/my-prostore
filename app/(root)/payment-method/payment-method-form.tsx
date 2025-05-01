@@ -11,7 +11,10 @@ import {
 } from '@/components/ui/form';
 import { RadioGroup, RadioGroupItem } from '@/components/ui/radio-group';
 import { useToast } from '@/hooks/use-toast';
-import { updateUserPaymentMethod } from '@/lib/actions/user.actions';
+import {
+  updateGuestPaymentMethod,
+  updateUserPaymentMethod,
+} from '@/lib/actions/user.actions';
 import { DEFAULT_PAYMENT_METHOD, PAYMENT_METHODS } from '@/lib/constants';
 import { paymentMethodSchema } from '@/lib/validators';
 import { zodResolver } from '@hookform/resolvers/zod';
@@ -44,6 +47,16 @@ const PaymentMethodForm = ({
     startTransition(async () => {
       if (isSingIn) {
         const res = await updateUserPaymentMethod(values);
+
+        if (!res.success) {
+          toast({
+            variant: 'destructive',
+            description: res.message,
+          });
+          return;
+        }
+      } else {
+        const res = await updateGuestPaymentMethod(values);
 
         if (!res.success) {
           toast({

@@ -13,7 +13,7 @@ const resend = new Resend(process.env.RESEND_API_KEY as string);
 export const sendPurchaseReceiptEmail = async ({ order }: { order: Order }) => {
   await resend.emails.send({
     from: `${APP_NAME} <${SENDER_EMAIL}>`,
-    to: order.user.email,
+    to: order.user?.email || order.guestUser?.email || SENDER_EMAIL,
     subject: `Your order ${order.id} has been received`,
     react: <PurchasesReceiptEmail order={order} />,
   });
@@ -22,7 +22,7 @@ export const sendPurchaseReceiptEmail = async ({ order }: { order: Order }) => {
 export const sendOrderUpdatedEmail = async ({ order }: { order: Order }) => {
   await resend.emails.send({
     from: `${APP_NAME} <${SENDER_EMAIL}>`,
-    to: order.user.email,
+    to: order.user?.email || order.guestUser?.email || SENDER_EMAIL,
     subject: `Your order has been shipped`,
     react: <ShippedOrderEmail order={order} />,
   });

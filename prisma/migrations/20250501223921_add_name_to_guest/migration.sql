@@ -1,0 +1,5 @@
+-- AlterTable
+ALTER TABLE "GuestUser" ADD COLUMN     "name" TEXT NOT NULL DEFAULT 'GUEST';
+
+-- AlterTable
+ALTER TABLE "User" ALTER COLUMN "name" SET DEFAULT 'USER';

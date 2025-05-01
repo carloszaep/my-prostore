@@ -26,7 +26,7 @@ const ForgotPasswordPage = async () => {
   }
 
   return (
-    <div className='w-full max-w-md mx-auto'>
+    <div>
       <Card>
         <CardHeader className='space-y-4'>
           <Link href={'/'} className='flex-center'>

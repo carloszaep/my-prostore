@@ -13,6 +13,7 @@ import CredentialsSignInForm from './credentials-sigin-form';
 import { auth } from '@/auth';
 import { redirect } from 'next/navigation';
 import { Button } from '@/components/ui/button';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'Sign In',
@@ -32,7 +33,14 @@ const SignInPage = async (props: {
   const isFromShippingAddress = callbackUrl?.includes('shipping-address');
 
   return (
-    <div className='w-full max-w-md mx-auto space-y-6'>
+    <div
+      className={cn(
+        'flex items-center justify-center',
+        isFromShippingAddress
+          ? 'md:grid md:grid-cols-3 md:space-y-2 md:space-x-2'
+          : ''
+      )}
+    >
       <Card>
         <CardHeader className='space-y-4'>
           <Link href='/' className='flex-center'>
@@ -61,7 +69,7 @@ const SignInPage = async (props: {
             <span>OR</span>
             <div className='h-px flex-1 bg-border' />
           </div>
-          <Card>
+          <Card className='flex flex-col justify-center'>
             <CardHeader>
               <CardTitle className='text-center'>Continue as Guest</CardTitle>
               <CardDescription className='text-center'>

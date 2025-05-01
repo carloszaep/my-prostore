@@ -20,6 +20,7 @@ import { PAGE_SIZE, SERVER_URL } from '../constants';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
 import { sendPasswordChangedEmail, sendResetPasswordEmail } from '@/email';
+import { getMyCart } from './cart.actions';
 
 // sign in user with credentials
 
@@ -232,6 +233,62 @@ export async function updateUserAddress(data: ShippingAddress) {
     return { success: false, message: formatError(error) };
   }
 }
+// create guest user
+export async function createGuestWithAddress(data: ShippingAddress) {
+  try {
+    const parseData = shippingAddressSchema.parse(data);
+
+    if (!parseData.guestEmail) {
+      throw new Error('Guest email is required');
+    }
+
+    // check for cart cookie
+    const cart = await getMyCart();
+    if (!cart) throw new Error('Cart session not found');
+
+    // Check if the guest user already exists
+    const existingGuestUser = await prisma.guestUser.findUnique({
+      where: { email: parseData.guestEmail },
+    });
+
+    if (existingGuestUser) {
+      // If the guest user exists, update their address
+      await prisma.guestUser.update({
+        where: { id: existingGuestUser.id },
+        data: { address: parseData },
+      });
+
+      await prisma.cart.update({
+        where: { id: cart.id },
+        data: { guestId: existingGuestUser.id },
+      });
+
+      return {
+        success: true,
+        message: 'Address updated successfully',
+      };
+    }
+
+    const guestUser = await prisma.guestUser.create({
+      data: {
+        email: parseData.guestEmail,
+        address: parseData,
+      },
+    });
+
+    await prisma.cart.update({
+      where: { id: cart.id },
+      data: { guestId: guestUser.id },
+    });
+
+    return {
+      success: true,
+      message: 'Address updated successfully',
+    };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
 
 // update user payment method
 export async function updateUserPaymentMethod(
@@ -263,6 +320,42 @@ export async function updateUserPaymentMethod(
   }
 }
 
+// update guest user payment method
+export async function updateGuestPaymentMethod(
+  data: z.infer<typeof paymentMethodSchema>
+) {
+  try {
+    const cart = await getMyCart();
+    if (!cart) throw new Error('Cart session not found');
+    if (!cart.guestId) throw new Error('User email not found');
+
+    const guestUser = await prisma.guestUser.findFirst({
+      where: { id: cart.guestId },
+    });
+
+    if (!guestUser) throw new Error('Guest user not found');
+
+    const paymentMethod = paymentMethodSchema.parse(data);
+
+    await prisma.guestUser.update({
+      where: { id: guestUser.id },
+      data: { paymentMethod: paymentMethod.type },
+    });
+
+    return { success: true, message: 'Payment method updated successfully' };
+  } catch (error) {
+    return { success: false, message: formatError(error) };
+  }
+}
+
+// get gust user by id
+export async function getGuestUserById(guestId: string) {
+  const user = await prisma.guestUser.findFirst({ where: { id: guestId } });
+
+  if (!user) throw new Error('User not found');
+  return user;
+}
+
 // update user profile
 export async function updateProfile(user: { name: string; email: string }) {
   try {
@@ -287,6 +380,32 @@ export async function updateProfile(user: { name: string; email: string }) {
   } catch (error) {
     return { success: false, message: formatError(error) };
   }
+}
+
+// ifo checkout
+export async function userCheckoutInfo(
+  userId: string | null,
+  guestId: string | null
+) {
+  let paymentMethod: string | null = null;
+  let address: ShippingAddress | null = null;
+  let isSignIn = false;
+
+  if (userId) {
+    // logged-in user
+    const user = await getUserById(userId);
+    paymentMethod = user.paymentMethod ?? null;
+    address = (user.address as ShippingAddress) ?? null;
+    isSignIn = true;
+  } else if (guestId) {
+    // guest
+    const guest = await getGuestUserById(guestId);
+    paymentMethod = guest.paymentMethod ?? null;
+    address = (guest.address as ShippingAddress) ?? null;
+    isSignIn = false;
+  }
+
+  return { paymentMethod, address, isSignIn };
 }
 
 // get all the users

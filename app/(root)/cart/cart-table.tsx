@@ -1,10 +1,10 @@
-"use client";
+'use client';
 
-import { useToast } from "@/hooks/use-toast";
-import { Cart } from "@/types";
-import Link from "next/link";
-import { useRouter } from "next/navigation";
-import { useTransition } from "react";
+import { useToast } from '@/hooks/use-toast';
+import { Cart } from '@/types';
+import Link from 'next/link';
+import { useRouter } from 'next/navigation';
+import { useTransition } from 'react';
 import {
   Table,
   TableBody,
@@ -12,13 +12,13 @@ import {
   TableHeader,
   TableRow,
   TableCell,
-} from "@/components/ui/table";
-import Image from "next/image";
-import { Button } from "@/components/ui/button";
-import { addItemToCart, removeItemFromCart } from "@/lib/actions/cart.actions";
-import { ArrowRight, Loader, Minus, Plus } from "lucide-react";
-import { formatCurrency } from "@/lib/utils";
-import { Card, CardContent } from "@/components/ui/card";
+} from '@/components/ui/table';
+import Image from 'next/image';
+import { Button } from '@/components/ui/button';
+import { addItemToCart, removeItemFromCart } from '@/lib/actions/cart.actions';
+import { ArrowRight, Loader, Minus, Plus } from 'lucide-react';
+import { formatCurrency } from '@/lib/utils';
+import { Card, CardContent } from '@/components/ui/card';
 
 const CartTable = ({ cart }: { cart?: Cart }) => {
   const router = useRouter();
@@ -27,29 +27,29 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
 
   return (
     <>
-      <h1 className="py-4 h2-bold">Shopping Cart</h1>
+      <h1 className='py-4 h2-bold'>Shopping Cart</h1>
       {!cart || cart.items.length === 0 ? (
         <div>
-          Cart is empty. <Link href={"/"}>Go Shopping</Link>
+          Cart is empty. <Link href={'/'}>Go Shopping</Link>
         </div>
       ) : (
-        <div className="grid lg:grid-cols-4 md:gap-5">
-          <div className="overflow-x-auto lg:col-span-3">
+        <div className='grid lg:grid-cols-4 md:gap-5'>
+          <div className='overflow-x-auto lg:col-span-3'>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Item</TableHead>
-                  <TableHead className="text-center">Quantity</TableHead>
-                  <TableHead className="text-right">Price</TableHead>
+                  <TableHead className='text-center'>Quantity</TableHead>
+                  <TableHead className='text-right'>Price</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
                 {cart.items.map((item) => (
                   <TableRow key={item.slug}>
-                    <TableCell className="p-1">
+                    <TableCell className='p-1'>
                       <Link
                         href={`/product/${item.slug}`}
-                        className="flex items-center"
+                        className='flex items-center'
                       >
                         <Image
                           src={item.image}
@@ -57,17 +57,17 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
                           width={50}
                           height={50}
                         />
-                        <span className="px-1 sm:text-xs md:text-sm">
+                        <span className='px-1 sm:text-xs md:text-sm'>
                           {item.name} {item.size && `(${item.size})`}
                         </span>
                       </Link>
                     </TableCell>
                     <TableCell>
-                      <div className="flex-center gap-2">
+                      <div className='flex-center gap-2'>
                         <Button
                           disabled={isPending}
-                          variant={"outline"}
-                          type="button"
+                          variant={'outline'}
+                          type='button'
                           onClick={() =>
                             startTransaction(async () => {
                               const res = await removeItemFromCart(
@@ -75,7 +75,7 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
                               );
                               if (!res.success) {
                                 toast({
-                                  variant: "destructive",
+                                  variant: 'destructive',
                                   description: res.message,
                                 });
                               }
@@ -83,22 +83,22 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
                           }
                         >
                           {isPending ? (
-                            <Loader className="w-4 h-4 animate-spin" />
+                            <Loader className='w-4 h-4 animate-spin' />
                           ) : (
-                            <Minus className="w-4 h-4" />
+                            <Minus className='w-4 h-4' />
                           )}
                         </Button>
                         <span>{item.qty}</span>
                         <Button
                           disabled={isPending}
-                          variant={"outline"}
-                          type="button"
+                          variant={'outline'}
+                          type='button'
                           onClick={() =>
                             startTransaction(async () => {
                               const res = await addItemToCart(item);
                               if (!res.success) {
                                 toast({
-                                  variant: "destructive",
+                                  variant: 'destructive',
                                   description: res.message,
                                 });
                               }
@@ -106,14 +106,14 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
                           }
                         >
                           {isPending ? (
-                            <Loader className="w-4 h-4 animate-spin" />
+                            <Loader className='w-4 h-4 animate-spin' />
                           ) : (
-                            <Plus className="w-4 h-4" />
+                            <Plus className='w-4 h-4' />
                           )}
                         </Button>
                       </div>
                     </TableCell>
-                    <TableCell className="text-right">
+                    <TableCell className='text-right'>
                       {formatCurrency(item.price)}
                     </TableCell>
                   </TableRow>
@@ -122,26 +122,28 @@ const CartTable = ({ cart }: { cart?: Cart }) => {
             </Table>
           </div>
           <Card>
-            <CardContent className="p-4 gap-4">
-              <div className="pb-3 text-xl flex justify-between">
+            <CardContent className='p-4 gap-4'>
+              <div className='pb-3 text-xl flex justify-between'>
                 Subtotal ({cart.items.reduce((acc, item) => acc + item.qty, 0)}
                 ):
-                <span className="font-bold ">
+                <span className='font-bold '>
                   {formatCurrency(cart.itemsPrice)}
                 </span>
               </div>
               <Button
-                className="w-full"
+                className='w-full'
                 disabled={isPending}
                 onClick={() =>
-                  startTransaction(() => router.push("/shipping-address"))
+                  startTransaction(() =>
+                    router.push('/sign-in?callbackUrl=/shipping-address')
+                  )
                 }
               >
                 {isPending ? (
-                  <Loader className="w-4 h-4 animate-spin" />
+                  <Loader className='w-4 h-4 animate-spin' />
                 ) : (
-                  <ArrowRight className="w-4 h-4" />
-                )}{" "}
+                  <ArrowRight className='w-4 h-4' />
+                )}{' '}
                 Proceed to Checkout
               </Button>
             </CardContent>

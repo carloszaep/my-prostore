@@ -19,7 +19,7 @@ import { z } from 'zod';
 import { PAGE_SIZE, SERVER_URL } from '../constants';
 import { revalidatePath } from 'next/cache';
 import { Prisma } from '@prisma/client';
-import { sendResetPasswordEmail } from '@/email';
+import { sendPasswordChangedEmail, sendResetPasswordEmail } from '@/email';
 
 // sign in user with credentials
 
@@ -158,15 +158,18 @@ export async function resetPassword(prevState: unknown, formData: FormData) {
         data: { password: inputs.password, resetToken: null },
       });
 
-      // await signIn('credentials', {
-      //   email: session.user.email,
-      //   password: plainPassword,
-      // });
-
       return { success: true, message: 'Password was changed' };
     }
 
     if (!token) {
+      throw new Error('Token is required');
+    }
+
+    if (typeof token !== 'string') {
+      throw new Error('Token is required');
+    }
+
+    if (token.length < 10) {
       throw new Error('Token is required');
     }
 
@@ -183,7 +186,8 @@ export async function resetPassword(prevState: unknown, formData: FormData) {
       data: { password: inputs.password, resetToken: null },
     });
 
-    // await signIn('credentials', { email: user.email, password: plainPassword });
+    // send email to user
+    sendPasswordChangedEmail({ userEmail: user.email, userName: user.name });
 
     return { success: true, message: 'Password was changed' };
   } catch (error) {

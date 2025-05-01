@@ -1,4 +1,3 @@
-// src/emails/ResetPasswordEmail.tsx
 import {
   Html,
   Head,
@@ -15,38 +14,25 @@ interface Props {
 }
 
 export default function ResetPasswordEmail({ resetUrl }: Props) {
-  console.log(resetUrl, 'resetUrl in email template');
   return (
     <Html>
       <Head />
       <Preview>Reset your password</Preview>
-      <Body style={{ fontFamily: 'system-ui, sans-serif' }}>
-        <Container
-          style={{
-            padding: '20px',
-            borderRadius: '8px',
-            backgroundColor: '#f9f9f9',
-          }}
-        >
-          <Heading style={{ fontSize: '24px', marginBottom: '16px' }}>
+      <Body className='font-sans bg-white'>
+        <Container className='p-5 rounded-lg bg-gray-100'>
+          <Heading className='text-2xl mb-4 text-gray-900'>
             Password Reset Requested
           </Heading>
-          <Text style={{ marginBottom: '16px' }}>
+          <Text className='mb-4 text-gray-700'>
             Click the button below to set a new password for your account:
           </Text>
           <Link
-            style={{
-              backgroundColor: '#2563eb',
-              color: 'white',
-              borderRadius: '4px',
-              textDecoration: 'none',
-              padding: '10px 20px',
-            }}
+            className='inline-block bg-blue-600 text-white rounded px-5 py-2 no-underline text-center'
             href={resetUrl}
           >
             Reset Password
           </Link>
-          <Text style={{ marginTop: '16px', fontSize: '12px', color: '#666' }}>
+          <Text className='mt-4 text-xs text-gray-500'>
             If you didn’t request this, just ignore this email.
           </Text>
         </Container>

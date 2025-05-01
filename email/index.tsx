@@ -6,6 +6,7 @@ require('dotenv').config();
 import PurchasesReceiptEmail from './purcahse-receipt';
 import ShippedOrderEmail from './order-update';
 import ResetPasswordEmail from './reset-password-token';
+import PasswordChangedEmail from './password-change-alert';
 
 const resend = new Resend(process.env.RESEND_API_KEY as string);
 
@@ -39,5 +40,20 @@ export const sendResetPasswordEmail = async ({
     to: email,
     subject: `Reset your password`,
     react: <ResetPasswordEmail resetUrl={resetUrl} />,
+  });
+};
+
+export const sendPasswordChangedEmail = async ({
+  userEmail,
+  userName,
+}: {
+  userEmail: string;
+  userName: string;
+}) => {
+  await resend.emails.send({
+    from: `${APP_NAME} <${SENDER_EMAIL}>`,
+    to: userEmail,
+    subject: `your password has been changed`,
+    react: <PasswordChangedEmail userName={userName} />,
   });
 };

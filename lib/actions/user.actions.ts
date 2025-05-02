@@ -48,6 +48,8 @@ export async function signinWithCredentials(
 
 // sign out user
 export async function signOutUser() {
+  const currentCart = await getMyCart();
+  await prisma.cart.delete({ where: { id: currentCart?.id } });
   await signOut();
 }
 
@@ -255,7 +257,7 @@ export async function createGuestWithAddress(data: ShippingAddress) {
       // If the guest user exists, update their address
       await prisma.guestUser.update({
         where: { id: existingGuestUser.id },
-        data: { address: parseData },
+        data: { address: parseData, name: parseData.fullName },
       });
 
       await prisma.cart.update({
@@ -273,6 +275,7 @@ export async function createGuestWithAddress(data: ShippingAddress) {
       data: {
         email: parseData.guestEmail,
         address: parseData,
+        name: parseData.fullName,
       },
     });
 

@@ -268,6 +268,8 @@ export async function updateOrderToPaid({
       guestUser: updateOrder.guestUser as { name: string; email: string },
     },
   });
+
+  revalidatePath(`/order/${orderId}`);
 }
 
 //get user's orders

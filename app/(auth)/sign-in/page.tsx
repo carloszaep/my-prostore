@@ -37,8 +37,8 @@ const SignInPage = async (props: {
       className={cn(
         'flex items-center justify-center',
         isFromShippingAddress
-          ? 'md:grid md:grid-cols-3 md:space-y-2 md:space-x-2'
-          : ''
+          ? 'lg:grid lg:grid-cols-3 lg:space-y-2 lg:space-x-2 flex-col space-y-2'
+          : 'flex-col'
       )}
     >
       <Card>

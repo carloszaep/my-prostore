@@ -76,7 +76,9 @@ const AdminOrdersPage = async (props: {
                   {formatDateTime(order.createdAt).dateTime}
                 </TableCell>
                 <TableCell>
-                  {order.user?.name || order.guestUser?.name}
+                  {order.user?.name
+                    ? order.user.name
+                    : order.shippingAddress?.fullName}
                 </TableCell>
                 <TableCell>{formatCurrency(order.totalPrice)}</TableCell>
                 <TableCell>

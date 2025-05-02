@@ -108,6 +108,7 @@ const ShippingAddressFrom = ({
                       <FormControl>
                         <Input
                           required
+                          type='email'
                           placeholder='Enter your email address'
                           {...field}
                           value={field.value ?? ''}

@@ -1,4 +1,4 @@
-import { Button } from "@/components/ui/button";
+import { Button } from '@/components/ui/button';
 import {
   Drawer,
   DrawerClose,
@@ -6,31 +6,34 @@ import {
   DrawerHeader,
   DrawerTitle,
   DrawerTrigger,
-} from "@/components/ui/drawer";
-import { getAllCategories } from "@/lib/actions/products.actions";
-import { MenuIcon } from "lucide-react";
-import Link from "next/link";
-import Search from "./search";
+} from '@/components/ui/drawer';
+import { getAllCategories } from '@/lib/actions/products.actions';
+import { MenuIcon } from 'lucide-react';
+import Link from 'next/link';
+import Search from './search';
 
 const CategoryDrawer = async () => {
   const categories = await getAllCategories();
 
   return (
-    <Drawer direction="left">
+    <Drawer direction='left'>
       <DrawerTrigger asChild>
-        <Button variant={"outline"}>
+        <Button variant={'outline'}>
           <MenuIcon />
         </Button>
       </DrawerTrigger>
-      <DrawerContent className="h-full max-w-sm">
+      <DrawerContent className='h-full max-w-sm'>
         <DrawerHeader>
-          <DrawerTitle>Select a category</DrawerTitle>
-          <div className="space-y-1 mt-4">
+          <div className='md:hidden'>
+            <Search mobil={true} />
+          </div>
+          <DrawerTitle className='mt-3'>Departments</DrawerTitle>
+          <div className='space-y-1 mt-4'>
             {categories.map((x) => (
               <Button
-                variant={"ghost"}
+                variant={'ghost'}
                 key={x.category}
-                className="w-full justify-start"
+                className='w-full justify-start'
                 asChild
               >
                 <DrawerClose asChild>
@@ -40,9 +43,6 @@ const CategoryDrawer = async () => {
                 </DrawerClose>
               </Button>
             ))}
-          </div>
-          <div>
-            <Search mobil={true} />
           </div>
         </DrawerHeader>
       </DrawerContent>

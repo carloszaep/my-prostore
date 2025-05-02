@@ -375,7 +375,10 @@ export async function getOrderSummary() {
   // get latest sales
   const latestSales = await prisma.order.findMany({
     orderBy: { createdAt: 'desc' },
-    include: { user: { select: { name: true } } },
+    include: {
+      user: { select: { name: true } },
+      guestUser: { select: { name: true } },
+    },
     take: 6,
   });
 
@@ -385,7 +388,10 @@ export async function getOrderSummary() {
     usersCount,
     totalSales,
     salesData,
-    latestSales,
+    latestSales: latestSales.map((sale) => ({
+      ...sale,
+      shippingAddress: sale.shippingAddress as ShippingAddress,
+    })),
   };
 }
 
@@ -426,7 +432,10 @@ export async function getAllOrders({
   const dataCount = await prisma.order.count();
 
   return {
-    data,
+    data: data.map((sale) => ({
+      ...sale,
+      shippingAddress: sale.shippingAddress as ShippingAddress,
+    })),
     totalPages: Math.ceil(dataCount / limit),
   };
 }
@@ -552,8 +561,6 @@ export async function insertTrackingNumber({
         guestUser: updatedOrder.guestUser as { name: string; email: string },
       },
     });
-
-    
 
     revalidatePath(`/order/${orderId}`);
 

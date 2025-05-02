@@ -309,19 +309,17 @@ const OrderDetailsTable = ({
 
               {isPaid ? (
                 <Badge variant={'secondary'}>
-                  Paid at {formatDateTime(paidAt!).dateTime}
+                  Paid on {formatDateTime(paidAt!).dateTime}
                 </Badge>
               ) : (
                 <Badge variant={'destructive'}>Not paid</Badge>
               )}
               <br />
 
-              {isDelivered ? (
+              {isDelivered && (
                 <Badge variant={'secondary'}>
-                  Delivered at {formatDateTime(deliveredAt!).dateTime}
+                  Delivered on {formatDateTime(deliveredAt!).dateTime}
                 </Badge>
-              ) : (
-                <Badge variant={'destructive'}>Not Delivered</Badge>
               )}
             </CardContent>
           </Card>

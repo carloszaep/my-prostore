@@ -134,7 +134,7 @@ const ProductDetailsPage = async (props: {
 
         <ReviewList
           userId={userId || ''}
-          productId={product.id}
+          productName={product.name}
           productSlug={product.slug}
           isVerifiedPurchase={
             isVerifiedPurchase || session?.user?.role === 'admin' || false

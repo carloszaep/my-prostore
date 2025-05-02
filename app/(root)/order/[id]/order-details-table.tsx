@@ -183,7 +183,7 @@ const OrderDetailsTable = ({
 
   return (
     <>
-      <h1 className='py-444 text-2xl'>Order {formatId(id)}</h1>
+      {isPaid && <h1 className='py-444 text-2xl'>Order {formatId(id)}</h1>}
       <div className='grid md:grid-cols-3 md:gap-5'>
         <Card className='md:order-2'>
           <CardContent className='p-4 gap-4 space-y-4'>

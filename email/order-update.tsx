@@ -107,7 +107,7 @@ export default function PurchaseReceiptEmail({ order }: { order: Order }) {
                 </Row>
               ))}
             </Section>
-            <Section className='border border-solid border-gray-500 rounded-lg p-4 md:p-6 my-4'>
+            <Section className='border border-solid border-gray-500 rounded-lg p-6 my-4'>
               <Text className='mb-0 mr-4 text-gray-500 whitespace-nowrap text-nowrap'>
                 Shipping Address
               </Text>
@@ -122,12 +122,12 @@ export default function PurchaseReceiptEmail({ order }: { order: Order }) {
               </Text>
             </Section>
             {/* link to check order in web app */}
-            <Section className='border border-solid border-gray-500 rounded-lg p-4 md:p-6 my-4'>
+            <Section className='border border-solid border-gray-500 rounded-lg  p-6 my-4'>
               <Link
                 className='inline-block bg-blue-600 text-white rounded px-5 py-2 no-underline text-center'
                 href={`${SERVER_URL}/order/${order.id}`}
               >
-                Reset Password
+                View Order
               </Link>
             </Section>
           </Container>

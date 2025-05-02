@@ -538,6 +538,7 @@ export async function insertTrackingNumber({
       include: {
         orderitems: true,
         user: { select: { name: true, email: true } },
+        guestUser: { select: { name: true, email: true } },
       },
     });
 

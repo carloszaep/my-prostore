@@ -548,8 +548,11 @@ export async function insertTrackingNumber({
         paymentResult: updatedOrder.paymentResult as PaymentResult,
         orderitems: updatedOrder.orderitems,
         user: updatedOrder.user as { name: string; email: string },
+        guestUser: updateOrder.guestUser as { name: string; email: string },
       },
     });
+
+    
 
     revalidatePath(`/order/${orderId}`);
 

@@ -5,7 +5,7 @@ import { convertToPlainObject, formatError } from '../utils';
 import { auth } from '@/auth';
 import { getMyCart } from './cart.actions';
 import { userCheckoutInfo } from './user.actions';
-import { insertOrderSchema } from '../validators';
+import { findOrderSchema, insertOrderSchema } from '../validators';
 import { prisma } from '@/db/prisma';
 import { CartItem, PaymentResult, ShippingAddress } from '@/types';
 import { paypal } from '../paypal';
@@ -114,6 +114,46 @@ export async function getOrderById(orderId: string) {
   });
 
   return convertToPlainObject(data);
+}
+
+// find order by id and email
+export async function findOrderByIdAndEmail(
+  prevState: unknown,
+  formData: FormData
+) {
+  try {
+    const inputs = findOrderSchema.parse({
+      email: formData.get('email'),
+      orderId: formData.get('orderId'),
+    });
+
+    const data = await prisma.order.findFirst({
+      where: {
+        id: inputs.orderId,
+        isPaid: true,
+        OR: [
+          { user: { email: inputs.email } },
+          { guestUser: { email: inputs.email } },
+        ],
+      },
+    });
+
+    if (!data) {
+      return {
+        success: false,
+        message: 'Order not found',
+      };
+    }
+
+    return {
+      success: true,
+      message: 'Order found',
+      orderId: data.id,
+    };
+  } catch (error) {
+    console.error('Error finding order by ID and email:', error);
+    throw new Error('Unable to retrieve order.');
+  }
 }
 
 // create new paypal order

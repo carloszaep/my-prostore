@@ -121,6 +121,12 @@ export const shippingAddressSchema = z.object({
   lng: z.number().optional(),
 });
 
+// schema for finding order
+export const findOrderSchema = z.object({
+  orderId: z.string().min(1, 'Order id is required'),
+  email: z.string().email('Invalid email address'),
+});
+
 // schema for payment method
 
 export const paymentMethodSchema = z

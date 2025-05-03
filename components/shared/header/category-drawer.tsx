@@ -27,7 +27,7 @@ const CategoryDrawer = async () => {
           <div className='md:hidden'>
             <Search mobil={true} />
           </div>
-          <DrawerTitle className='mt-3'>Departments</DrawerTitle>
+          <DrawerTitle className='mt-3'>Categories</DrawerTitle>
           <div className='space-y-1 mt-4'>
             {categories.map((x) => (
               <Button

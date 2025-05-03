@@ -20,12 +20,12 @@ import { getReviews } from '@/lib/actions/review.actions';
 
 const ReviewList = ({
   userId,
-  productName,
+  productId,
   productSlug,
   isVerifiedPurchase,
 }: {
   userId: string;
-  productName: string;
+  productId: string;
   productSlug: string;
   isVerifiedPurchase: boolean;
 }) => {
@@ -33,16 +33,16 @@ const ReviewList = ({
 
   useEffect(() => {
     const loadReviews = async () => {
-      const res = await getReviews({ productName });
+      const res = await getReviews({ productId });
       setReviews(res.data);
     };
 
     loadReviews();
-  }, [productName]);
+  }, [productId]);
 
   // Reload reviews after created or updated
   const reload = async () => {
-    const res = await getReviews({ productName });
+    const res = await getReviews({ productId });
     setReviews([...res.data]);
   };
 
@@ -81,7 +81,7 @@ const ReviewList = ({
         isVerifiedPurchase ? (
           <ReviewForm
             userId={userId}
-            productId={productName}
+            productId={productId}
             onReviewSubmitted={reload}
           />
         ) : (

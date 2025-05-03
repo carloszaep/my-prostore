@@ -131,10 +131,16 @@ const ProductDetailsPage = async (props: {
       </section>
       <section className='mt-10'>
         <h2 className='h2-bold'>Costumer Reviews</h2>
+        {/* a small text to let user know review are different by products size */}
+        {product.size && (
+          <p className='text-xs text-muted-foreground'>
+            Reviews are different by product size. Please check the size.
+          </p>
+        )}
 
         <ReviewList
           userId={userId || ''}
-          productName={product.name}
+          productId={product.id}
           productSlug={product.slug}
           isVerifiedPurchase={
             isVerifiedPurchase || session?.user?.role === 'admin' || false
